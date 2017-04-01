@@ -157,6 +157,9 @@ function Environment::copyFrom(%this, %other)
 		%this.var_WaterScrollY = %other.var_WaterScrollY;
 		%this.var_WindEffectPrecipitation = %other.var_WindEffectPrecipitation;
 		%this.var_WindVelocity = %other.var_WindVelocity;
+
+		%this.simple_VignetteColor = %other.simple_VignetteColor;
+		%this.simple_VignetteMultiply = %other.simple_VignetteMultiply;
 	}
 	else
 		%this.copyVariables();

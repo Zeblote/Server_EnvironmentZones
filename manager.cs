@@ -1,5 +1,8 @@
 function GameConnection::setEnvironment(%this, %env)
 {
+	if(%this.currentEnvironment == %env)
+		return;
+
 	if(isObject(%this.currentEnvironment))
 		%this.currentEnvironment.clearScopeToClient(%this);
 
