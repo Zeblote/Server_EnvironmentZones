@@ -292,6 +292,7 @@ function serverCmdEnvHelp(%client)
 
 	messageClient(%client, '', "<tab:220>\c3/saveEnvZones\c6 [\c3name\c6]\t\c6 Save the current environment zones to a file.");
 	messageClient(%client, '', "<tab:220>\c3/loadEnvZones\c6 [\c3name\c6]\t\c6 Load the environment zone setup from a file.");
+	messageClient(%client, '', "<tab:220>\c3/deleteEnvZoneFile\c6 [\c3name\c6]\t\c6 Permanently delete an environment zone setup.");
 	messageClient(%client, '', "<tab:220>\c3/listEnvZoneFiles\t\c6 List the available saves, in case you forgot them.");
 
 	messageClient(%client, '', "\c7--------------------------------------------------------------------------------");
@@ -576,6 +577,47 @@ function serverCmdLoadEnvZones(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, %f7)
 
 	loadEnvironmentZones(%filePath);
 	messageClient(%client, '', "\c6Zones loaded.");
+}
+
+function serverCmdDeleteEnvZoneFile(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, %f7)
+{
+	if(!%client.isAdmin)
+		return;
+
+	%fileName = trim(%f0 SPC %f1 SPC %f2 SPC %f3 SPC %f4 SPC %f5 SPC %f6 SPC %f7);
+	if(!strLen(%fileName))
+	{
+		messageClient(%client, '', "\c6Invalid name.");
+		return;
+	}
+
+	%allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ._-()";
+	%filePath = "config/server/EnvironmentZoneSaves/" @ %fileName @ ".ez";
+	%filePath = strReplace(%filePath, ".ez.ez", ".ez");
+
+	for(%i = 0; %i < strLen(%fileName); %i++)
+	{
+		if(strStr(%allowed, getSubStr(%fileName, %i, 1)) == -1)
+		{
+			%forbidden = true;
+			break;
+		}
+	}
+
+	if(%forbidden || !strLen(%fileName) || strLen(%fileName) > 50)
+	{
+		messageClient(%client, '', "\c6Bad file name, try again.");
+		return;
+	}
+
+	if(!isFile(%filePath))
+	{
+		messageClient(%client, '', "\c6File does not exist.");
+		return;
+	}
+
+	fileDelete(%filePath);
+	messageClient(%client, '', "\c6File deleted.");
 }
 
 function serverCmdListEnvZoneFiles(%client)
