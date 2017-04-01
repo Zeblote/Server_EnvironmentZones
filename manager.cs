@@ -1,14 +1,3 @@
-function EnvironmentZone::onClientEnterZone(%this, %client)
-{
-	%client.setEnvironment(%this.environment);
-}
-
-function EnvironmentZone::onClientLeaveZone(%this, %client)
-{
-	if(!%this.persistent)
-		%client.setEnvironment($DefaultEnvironment);
-}
-
 function GameConnection::setEnvironment(%this, %env)
 {
 	if(isObject(%this.currentEnvironment))
@@ -48,6 +37,14 @@ package EnvironmentZones
 
 		setupDefaultEnvironment();
 		%this.setEnvironment($DefaultEnvironment);
+	}
+
+	function GameConnection::onClientLeaveGame(%this)
+	{
+		if(isObject(%this.envEditZone))
+			%this.envEditZone.stopEdit();
+
+		parent::onClientLeaveGame(%this);
 	}
 
 	function serverCmdEnvGui_RequestCurrent(%client)

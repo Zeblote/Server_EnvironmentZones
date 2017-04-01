@@ -19,6 +19,17 @@ function EnvironmentZoneTrigger::onLeaveTrigger(%this, %trigger, %obj)
 	%trigger.zone.onClientLeaveZone(%obj.client);
 }
 
+function EnvironmentZone::onClientEnterZone(%this, %client)
+{
+	%client.setEnvironment(%this.environment);
+}
+
+function EnvironmentZone::onClientLeaveZone(%this, %client)
+{
+	if(!%this.persistent)
+		%client.setEnvironment($DefaultEnvironment);
+}
+
 function EnvironmentZone()
 {
 	//Create zone object
@@ -92,7 +103,7 @@ function EnvironmentZone::startEdit(%this, %client)
 		showEnvironmentZones(true);
 
 	%this.editClient = %client;
-	%client.envEditBox = %this.editBox;
+	%client.envEditZone = %this;
 
 	%this.editBox.setSizeAligned(%this.point1, %this.point2, %client.getControlObject());
 	%this.editBox.setNormalMode();
@@ -106,7 +117,7 @@ function EnvironmentZone::stopEdit(%this)
 		return false;
 	}
 
-	%this.editClient.envEditBox = 0;
+	%this.editClient.envEditZone = 0;
 	%this.editClient = 0;
 
 	%this.editBox.setDisabledMode();
@@ -118,7 +129,7 @@ package EnvironmentZones
 	//Shift Brick
 	function serverCmdShiftBrick(%client, %x, %y, %z)
 	{
-		if(!isObject(%client.envEditBox))
+		if(!isObject(%client.envEditZone))
 			return parent::serverCmdShiftBrick(%client, %x, %y, %z);
 
 		//Move the corner
@@ -134,13 +145,13 @@ package EnvironmentZones
 		%newY = mFloor(%newY) / 2;
 		%z    = mFloor(%z   ) / 5;
 
-		%client.envEditBox.shiftCorner(%newX SPC %newY SPC %z, 100000);
+		%client.envEditZone.editBox.shiftCorner(%newX SPC %newY SPC %z, 100000);
 	}
 
 	//Super Shift Brick
 	function serverCmdSuperShiftBrick(%client, %x, %y, %z)
 	{
-		if(!isObject(%client.envEditBox))
+		if(!isObject(%client.envEditZone))
 			return parent::serverCmdSuperShiftBrick(%client, %x, %y, %z);
 
 		serverCmdShiftBrick(%client, %x * 8, %y * 8, %z * 20);
@@ -149,10 +160,10 @@ package EnvironmentZones
 	//Rotate Brick
 	function serverCmdRotateBrick(%client, %direction)
 	{
-		if(!isObject(%client.envEditBox))
+		if(!isObject(%client.envEditZone))
 			return parent::serverCmdRotateBrick(%client, %direction);
 
-		%client.envEditBox.switchCorner();
+		%client.envEditZone.editBox.switchCorner();
 	}
 };
 
