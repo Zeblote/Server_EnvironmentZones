@@ -1,3 +1,6 @@
+// Handles the creation and modification of separate environments.
+// -------------------------------------------------------------------
+
 function Environment()
 {
 	%this = new ScriptObject(Environment);
@@ -6,14 +9,15 @@ function Environment()
 
 function Environment::onRemove(%this)
 {
-	%this.deleteObjects();
-
+	// Make sure we don't leave clients that currently use this environment in limbo
 	for(%i = 0; %i < ClientGroup.getCount(); %i++)
 	{
 		%client = ClientGroup.getObject(%i);
 		if(%client.currentEnvironment == %this)
 			%client.setEnvironment($DefaultEnvironment);
 	}
+
+	%this.deleteObjects();
 }
 
 function Environment::deleteObjects(%this)
@@ -50,6 +54,7 @@ function Environment::copyFrom(%this, %other)
 
 	%this.deleteObjects();
 
+	// Just clone all the objects directly, then remove the names
 	if(isObject(%other.sky))
 	{
 		%name = %other.sky.getName();
@@ -122,8 +127,10 @@ function Environment::copyFrom(%this, %other)
 		%other.rain.setName(%name);
 	}
 
+	// Unghost all the new environment objects
 	%this.setupNetFlags();
 
+	// Clone all the environment variables aswell
 	if(%other.getId() != $CurrentEnvironment)
 	{
 		%this.var_AmbientLightColor = %other.var_AmbientLightColor;
@@ -171,8 +178,10 @@ function Environment::copyFrom(%this, %other)
 	else
 		%this.copyVariables();
 
+	// Set this environment as the one to be edited by EnvGuiServer
 	%this.setCurrent();
 
+	// Finalize the setup
 	if(!$EnvGuiServer::SimpleMode)
 	{
 		if(!$EnvGuiServer::HasSetAdvancedOnce)
@@ -182,7 +191,19 @@ function Environment::copyFrom(%this, %other)
 	}
 	else
 		EnvGuiServer::setSimpleMode();
+}
 
+function Environment::setCurrent(%this)
+{
+	// EnvGuiServer can only edit one global environment, so we need to swap them around
+	if($CurrentEnvironment == %this.getId())
+		return;
+
+	if(isObject($CurrentEnvironment))
+		$CurrentEnvironment.stopEdit();
+
+	$CurrentEnvironment = %this.getId();
+	%this.startEdit();
 }
 
 function Environment::startEdit(%this)
@@ -193,7 +214,7 @@ function Environment::startEdit(%this)
 
 function Environment::stopEdit(%this)
 {
-	//in case objects were created by the gui
+	// If objects were created or replaced by EnvGuiServer, capture them here.
 	%this.sky = nameToId("Sky");
 	%this.sun = nameToId("Sun");
 	%this.sunLight = nameToId("SunLight");
@@ -203,8 +224,64 @@ function Environment::stopEdit(%this)
 	%this.waterZone = nameToId("WaterZone");
 	%this.rain = nameToId("Rain");
 
-	%this.unNameObjects();
 	%this.copyVariables();
+	%this.unNameObjects();
+}
+
+function Environment::nameObjects(%this)
+{
+	// Set all the hidden objects to be found by EnvGuiServer
+	if(isObject(%this.sky))
+		%this.sky.setName("Sky");
+
+	if(isObject(%this.sun))
+		%this.sun.setName("Sun");
+
+	if(isObject(%this.sunLight))
+		%this.sunLight.setName("SunLight");
+
+	if(isObject(%this.dayCycle))
+		%this.dayCycle.setName("DayCycle");
+
+	if(isObject(%this.groundPlane))
+		%this.groundPlane.setName("GroundPlane");
+
+	if(isObject(%this.waterPlane))
+		%this.waterPlane.setName("WaterPlane");
+
+	if(isObject(%this.waterZone))
+		%this.waterZone.setName("WaterZone");
+
+	if(isObject(%this.rain))
+		%this.rain.setName("Rain");
+}
+
+function Environment::unNameObjects(%this)
+{
+	// Hide all the objects from EnvGuiServer again
+	if(isObject(%this.sky))
+		%this.sky.setName("");
+		
+	if(isObject(%this.sun))
+		%this.sun.setName("");
+
+	if(isObject(%this.sunLight))
+		%this.sunLight.setName("");
+
+	if(isObject(%this.dayCycle))
+		%this.dayCycle.setName("");
+
+	if(isObject(%this.groundPlane))
+		%this.groundPlane.setName("");
+
+	if(isObject(%this.waterPlane))
+		%this.waterPlane.setName("");
+
+	if(isObject(%this.waterZone))
+		%this.waterZone.setName("");
+
+	if(isObject(%this.rain))
+		%this.rain.setName("");
 }
 
 function Environment::copyVariables(%this)
@@ -297,62 +374,9 @@ function Environment::applyVariables(%this)
 	$Sky::VignetteMultiply = %this.simple_VignetteMultiply;
 }
 
-function Environment::nameObjects(%this)
-{
-	if(isObject(%this.sky))
-		%this.sky.setName("Sky");
-
-	if(isObject(%this.sun))
-		%this.sun.setName("Sun");
-
-	if(isObject(%this.sunLight))
-		%this.sunLight.setName("SunLight");
-
-	if(isObject(%this.dayCycle))
-		%this.dayCycle.setName("DayCycle");
-
-	if(isObject(%this.groundPlane))
-		%this.groundPlane.setName("GroundPlane");
-
-	if(isObject(%this.waterPlane))
-		%this.waterPlane.setName("WaterPlane");
-
-	if(isObject(%this.waterZone))
-		%this.waterZone.setName("WaterZone");
-
-	if(isObject(%this.rain))
-		%this.rain.setName("Rain");
-}
-
-function Environment::unNameObjects(%this)
-{
-	if(isObject(%this.sky))
-		%this.sky.setName("");
-		
-	if(isObject(%this.sun))
-		%this.sun.setName("");
-
-	if(isObject(%this.sunLight))
-		%this.sunLight.setName("");
-
-	if(isObject(%this.dayCycle))
-		%this.dayCycle.setName("");
-
-	if(isObject(%this.groundPlane))
-		%this.groundPlane.setName("");
-
-	if(isObject(%this.waterPlane))
-		%this.waterPlane.setName("");
-
-	if(isObject(%this.waterZone))
-		%this.waterZone.setName("");
-
-	if(isObject(%this.rain))
-		%this.rain.setName("");
-}
-
 function Environment::setupNetFlags(%this)
 {
+	// Disable automatic ghosting on all environment objects
 	if(isObject(%this.sky))
 	{
 		if(GhostAlwaysSet.isMember(%this.sky))
@@ -420,6 +444,7 @@ function Environment::setupNetFlags(%this)
 
 function Environment::scopeToClient(%this, %client)
 {
+	// Manually ghost the environment to a specific client
 	if(isObject(%this.sky))
 		%this.sky.scopeToClient(%client);
 
@@ -447,6 +472,7 @@ function Environment::scopeToClient(%this, %client)
 
 function Environment::clearScopeToClient(%this, %client)
 {
+	// Manually unghost the environment from a specific client
 	if(isObject(%this.sky))
 		%this.sky.clearScopeToClient(%client);
 
@@ -472,28 +498,54 @@ function Environment::clearScopeToClient(%this, %client)
 		%this.rain.clearScopeToClient(%client);
 }
 
-function Environment::setCurrent(%this)
-{
-	if($CurrentEnvironment == %this.getId())
-		return;
-
-	if(isObject($CurrentEnvironment))
-		$CurrentEnvironment.stopEdit();
-
-	$CurrentEnvironment = %this.getId();
-	%this.startEdit();
-}
-
 function Environment::postEditCheck(%this)
 {
+	// Ensure we save the variables and capture new objects after every edit
 	%this.stopEdit();
 	%this.setupNetFlags();
 	%this.startEdit();
 
+	// If new objects were added we have to ghost them to clients currently using this environment
 	for(%i = 0; %i < ClientGroup.getCount(); %i++)
 	{
 		%client = ClientGroup.getObject(%i);
 		if(%client.currentEnvironment == %this)
 			%this.scopeToClient(%client);
+	}
+}
+
+function GameConnection::setEnvironment(%this, %env)
+{
+	// Swap a clients current environment with this one
+	if(%this.currentEnvironment == %env)
+		return;
+
+	if(isObject(%this.currentEnvironment))
+		%this.currentEnvironment.clearScopeToClient(%this);
+
+	%this.currentEnvironment = %env;
+	%env.scopeToClient(%this);
+	EnvGuiServer::sendVignette(%this);
+}
+
+function setupDefaultEnvironment()
+{
+	if(!isObject($DefaultEnvironment))
+	{
+		// Capture the global environment so we can swap it with others later
+		%env = Environment();
+		%env.sky = nameToId("Sky");
+		%env.sun = nameToId("Sun");
+		%env.sunLight = nameToId("SunLight");
+		%env.dayCycle = nameToId("DayCycle");
+		%env.groundPlane = nameToId("GroundPlane");
+		%env.waterPlane = nameToId("WaterPlane");
+		%env.waterZone = nameToId("WaterZone");
+		%env.rain = nameToId("Rain");
+		%env.copyVariables();
+		%env.setupNetFlags();
+
+		$CurrentEnvironment = %env.getId();
+		$DefaultEnvironment = %env.getId();
 	}
 }

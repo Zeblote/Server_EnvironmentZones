@@ -1,3 +1,6 @@
+// Handles the creation and modification of physical zones in the world.
+// -------------------------------------------------------------------
+
 datablock TriggerData(EnvironmentZoneTrigger)
 {
 	tickPeriodMS = 120;
@@ -5,6 +8,8 @@ datablock TriggerData(EnvironmentZoneTrigger)
 
 function EnvironmentZoneTrigger::onEnterTrigger(%this, %trigger, %obj)
 {
+	// We also want to catch vehicles entering the zone,
+	// and apply the environment to all mounted players.
 	if(%obj.getClassName() $= "Player"
 		|| %obj.getClassName() $= "AiPlayer"
 		|| %obj.getClassName() $= "WheeledVehicle"
@@ -12,6 +17,15 @@ function EnvironmentZoneTrigger::onEnterTrigger(%this, %trigger, %obj)
 	{
 		%trigger.zone.recursiveEnterZone(%obj);
 	}
+}
+
+function EnvironmentZone::recursiveEnterZone(%this, %obj)
+{
+	if(%obj.getClassName() $= "Player" && isObject(%obj.client))
+		%obj.client.setEnvironment(%this.environment);
+
+	for(%i = 0; %i < %obj.getMountedObjectCount(); %i++)
+		%this.recursiveEnterZone(%obj.getMountedObject(%i));
 }
 
 function EnvironmentZoneTrigger::onLeaveTrigger(%this, %trigger, %obj)
@@ -25,17 +39,10 @@ function EnvironmentZoneTrigger::onLeaveTrigger(%this, %trigger, %obj)
 	}
 }
 
-function EnvironmentZone::recursiveEnterZone(%this, %obj)
-{
-	if(%obj.getClassName() $= "Player" && isObject(%obj.client))
-		%obj.client.setEnvironment(%this.environment);
-
-	for(%i = 0; %i < %obj.getMountedObjectCount(); %i++)
-		%this.recursiveEnterZone(%obj.getMountedObject(%i));
-}
-
 function EnvironmentZone::recursiveLeaveZone(%this, %obj)
 {
+	// Persistent environments remain if you leave a zone.
+	// You have to enter another zone to change again.
 	if(%this.persistent)
 		return;
 
@@ -56,7 +63,7 @@ function EnvironmentZone(%name)
 		}
 	);
 
-	//Create zone trigger
+	// Create zone trigger
 	%this.trigger = new Trigger()
 	{
 		datablock = EnvironmentZoneTrigger;
@@ -64,7 +71,7 @@ function EnvironmentZone(%name)
 		zone = %this;
 	};
 
-	//Create visualization box
+	// Create visualization box
 	if($ShowEnvironmentZones)
 	{
 		%this.editBox = ND_SelectionBox();
@@ -72,6 +79,7 @@ function EnvironmentZone(%name)
 		%this.updateShapeName();
 	}
 
+	// Create copy of the main environment
 	%this.environment = Environment();
 	%this.environment.copyFrom($DefaultEnvironment);
 
@@ -80,6 +88,7 @@ function EnvironmentZone(%name)
 
 function EnvironmentZone::onRemove(%this)
 {
+	// Clean up all our objects here
 	%this.trigger.delete();
 
 	if(isObject(%this.editBox))
@@ -136,8 +145,8 @@ function EnvironmentZone::stopEdit(%this)
 		return false;
 	}
 
-	%this.editClient.envEditZone = 0;
-	%this.editClient = 0;
+	%this.editClient.envEditZone = "";
+	%this.editClient = "";
 
 	%this.editBox.setDisabledMode();
 	%this.setSize(%this.editBox.getWorldBox());
@@ -146,6 +155,7 @@ function EnvironmentZone::stopEdit(%this)
 
 function EnvironmentZone::updateShapeName(%this)
 {
+	// Update the shape name above the edit box
 	%this.editBox.shapeName.setShapeNameColor(%this.editBox.borderColor);
 
 	if(isObject(%this.editClient))
@@ -157,6 +167,34 @@ function EnvironmentZone::updateShapeName(%this)
 	%this.editBox.shapeName.setShapeName(%editor @ %persistent @ "Env Zone \"" @ %this.zoneName @ "\"");
 }
 
+function showEnvironmentZones(%bool)
+{
+	// Create an edit box for each zone
+	$ShowEnvironmentZones = %bool;
+	%count = EnvironmentZoneGroup.getCount();
+
+	for(%i = 0; %i < %count; %i++)
+	{
+		%zone = EnvironmentZoneGroup.getObject(%i);
+
+		if(%bool && !isObject(%zone.editBox))
+		{
+			%zone.editBox = ND_SelectionBox("Env Zone \"" @ %zone.zoneName @ "\"");
+			%zone.editBox.setDisabledMode();
+			%zone.editBox.setSize(%zone.point1, %zone.point2);
+			%zone.updateShapeName();
+		}
+		else if(!%bool && isObject(%zone.editBox))
+		{
+			if(isObject(%zone.editClient))
+				%zone.stopEdit();
+			
+			%zone.editBox.delete();
+		}
+	}
+}
+
+// Capture ghost brick controls to edit zones
 package EnvironmentZones
 {
 	//Shift Brick
@@ -199,32 +237,3 @@ package EnvironmentZones
 		%client.envEditZone.editBox.switchCorner();
 	}
 };
-
-function showEnvironmentZones(%bool)
-{
-	$ShowEnvironmentZones = %bool;
-	%count = EnvironmentZoneGroup.getCount();
-
-	for(%i = 0; %i < %count; %i++)
-	{
-		%zone = EnvironmentZoneGroup.getObject(%i);
-
-		if(%bool && !isObject(%zone.editBox))
-		{
-			%zone.editBox = ND_SelectionBox("Env Zone \"" @ %zone.zoneName @ "\"");
-			%zone.editBox.setDisabledMode();
-			%zone.editBox.setSize(%zone.point1, %zone.point2);
-			%zone.updateShapeName();
-		}
-		else if(!%bool && isObject(%zone.editBox))
-		{
-			if(isObject(%zone.editClient))
-				%zone.stopEdit();
-			
-			%zone.editBox.delete();
-		}
-	}
-}
-
-if(!isObject(EnvironmentZoneGroup))
-	new ScriptGroup(EnvironmentZoneGroup);
