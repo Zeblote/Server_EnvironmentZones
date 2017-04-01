@@ -30,11 +30,14 @@ function EnvironmentZone::onClientLeaveZone(%this, %client)
 		%client.setEnvironment($DefaultEnvironment);
 }
 
-function EnvironmentZone()
+function EnvironmentZone(%name)
 {
 	//Create zone object
 	EnvironmentZoneGroup.add(
 		%this = new ScriptObject(EnvironmentZone)
+		{
+			zoneName = %name;
+		}
 	);
 
 	//Create zone trigger
@@ -50,12 +53,11 @@ function EnvironmentZone()
 	{
 		%this.editBox = ND_SelectionBox();
 		%this.editBox.setDisabledMode();
+		%this.updateShapeName();
 	}
 
 	%this.environment = Environment();
 	%this.environment.copyFrom($DefaultEnvironment);
-
-	%this.setSize("0 0 0", "10 10 10");
 
 	return %this;
 }
@@ -107,6 +109,7 @@ function EnvironmentZone::startEdit(%this, %client)
 
 	%this.editBox.setSizeAligned(%this.point1, %this.point2, %client.getControlObject());
 	%this.editBox.setNormalMode();
+	%this.updateShapeName();
 }
 
 function EnvironmentZone::stopEdit(%this)
@@ -122,6 +125,20 @@ function EnvironmentZone::stopEdit(%this)
 
 	%this.editBox.setDisabledMode();
 	%this.setSize(%this.editBox.getWorldBox());
+	%this.updateShapeName();
+}
+
+function EnvironmentZone::updateShapeName(%this)
+{
+	%this.editBox.shapeName.setShapeNameColor(%this.editBox.borderColor);
+
+	if(isObject(%this.editClient))
+		%editor = %this.editClient.name @ " editing ";
+
+	if(%this.persistent)
+		%persistent = "Persistent ";
+
+	%this.editBox.shapeName.setShapeName(%editor @ %persistent @ "Env Zone \"" @ %this.zoneName @ "\"");
 }
 
 package EnvironmentZones
@@ -178,14 +195,17 @@ function showEnvironmentZones(%bool)
 
 		if(%bool && !isObject(%zone.editBox))
 		{
-			%zone.editBox = ND_SelectionBox();
+			%zone.editBox = ND_SelectionBox("Env Zone \"" @ %zone.zoneName @ "\"");
 			%zone.editBox.setDisabledMode();
 			%zone.editBox.setSize(%zone.point1, %zone.point2);
+			%zone.updateShapeName();
 		}
 		else if(!%bool && isObject(%zone.editBox))
 		{
-			if(!isObject(%zone.editClient))
-				%zone.editBox.delete();
+			if(isObject(%zone.editClient))
+				%zone.stopEdit();
+			
+			%zone.editBox.delete();
 		}
 	}
 }

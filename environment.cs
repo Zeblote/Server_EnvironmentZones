@@ -237,6 +237,9 @@ function Environment::copyVariables(%this)
 	%this.var_WaterScrollY = $EnvGuiServer::WaterScrollY;
 	%this.var_WindEffectPrecipitation = $EnvGuiServer::WindEffectPrecipitation;
 	%this.var_WindVelocity = $EnvGuiServer::WindVelocity;
+
+	%this.simple_VignetteColor = $Sky::VignetteColor;
+	%this.simple_VignetteMultiply = $Sky::VignetteMultiply;
 }
 
 function Environment::applyVariables(%this)
@@ -279,6 +282,9 @@ function Environment::applyVariables(%this)
 	$EnvGuiServer::WaterScrollY = %this.var_WaterScrollY;
 	$EnvGuiServer::WindEffectPrecipitation = %this.var_WindEffectPrecipitation;
 	$EnvGuiServer::WindVelocity = %this.var_WindVelocity;
+
+	$Sky::VignetteColor = %this.simple_VignetteColor;
+	$Sky::VignetteMultiply = %this.simple_VignetteMultiply;
 }
 
 function Environment::nameObjects(%this)
@@ -339,49 +345,65 @@ function Environment::setupNetFlags(%this)
 {
 	if(isObject(%this.sky))
 	{
-		%this.sky.clearScopeAlways();
+		if(GhostAlwaysSet.isMember(%this.sky))
+			%this.sky.clearScopeAlways();
+
 		%this.sky.setNetFlag(6, true);
 	}
 
 	if(isObject(%this.sun))
 	{
-		%this.sun.clearScopeAlways();
+		if(GhostAlwaysSet.isMember(%this.sky))
+			%this.sun.clearScopeAlways();
+
 		%this.sun.setNetFlag(6, true);
 	}
 
 	if(isObject(%this.sunLight))
 	{
-		%this.sunLight.clearScopeAlways();
+		if(GhostAlwaysSet.isMember(%this.sunLight))
+			%this.sunLight.clearScopeAlways();
+
 		%this.sunLight.setNetFlag(6, true);
 	}
 
 	if(isObject(%this.dayCycle))
 	{
-		%this.dayCycle.clearScopeAlways();
+		if(GhostAlwaysSet.isMember(%this.dayCycle))
+			%this.dayCycle.clearScopeAlways();
+
 		%this.dayCycle.setNetFlag(6, true);
 	}
 
 	if(isObject(%this.groundPlane))
 	{
-		%this.groundPlane.clearScopeAlways();
+		if(GhostAlwaysSet.isMember(%this.groundPlane))
+			%this.groundPlane.clearScopeAlways();
+
 		%this.groundPlane.setNetFlag(6, true);
 	}
 
 	if(isObject(%this.waterPlane))
 	{
-		%this.waterPlane.clearScopeAlways();
+		if(GhostAlwaysSet.isMember(%this.waterPlane))
+			%this.waterPlane.clearScopeAlways();
+
 		%this.waterPlane.setNetFlag(6, true);
 	}
 
 	if(isObject(%this.waterZone))
 	{
-		%this.waterZone.clearScopeAlways();
+		if(GhostAlwaysSet.isMember(%this.waterZone))
+			%this.waterZone.clearScopeAlways();
+
 		%this.waterZone.setNetFlag(6, true);
 	}
 
 	if(isObject(%this.rain))
 	{
-		%this.rain.clearScopeAlways();
+		if(GhostAlwaysSet.isMember(%this.rain))
+			%this.rain.clearScopeAlways();
+
 		%this.rain.setNetFlag(6, true);
 	}
 }
@@ -450,4 +472,18 @@ function Environment::setCurrent(%this)
 
 	$CurrentEnvironment = %this.getId();
 	%this.startEdit();
+}
+
+function Environment::postEditCheck(%this)
+{
+	%this.stopEdit();
+	%this.setupNetFlags();
+	%this.startEdit();
+
+	for(%i = 0; %i < ClientGroup.getCount(); %i++)
+	{
+		%client = ClientGroup.getObject(%i);
+		if(%client.currentEnvironment == %this)
+			%this.scopeToClient(%client);
+	}
 }
