@@ -314,7 +314,10 @@ function serverCmdEnvHelp(%client)
 function serverCmdShowEnvZones(%client)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	messageClient(%client, '', "\c6Environment zones are now visible.");
 	showEnvironmentZones(1);
@@ -323,7 +326,10 @@ function serverCmdShowEnvZones(%client)
 function serverCmdHideEnvZones(%client)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	messageClient(%client, '', "\c6Environment zones are now hidden.");
 	showEnvironmentZones(0);
@@ -332,7 +338,10 @@ function serverCmdHideEnvZones(%client)
 function serverCmdCreateEnvZone(%client, %n1, %n2, %n3, %n4, %n5)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	if(!$ShowEnvironmentZones)
 		showEnvironmentZones(1);
@@ -367,7 +376,10 @@ function serverCmdCreateEnvZone(%client, %n1, %n2, %n3, %n4, %n5)
 function serverCmdDeleteEnvZone(%client, %n1, %n2, %n3, %n4, %n5)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	if(!$ShowEnvironmentZones)
 		showEnvironmentZones(1);
@@ -392,7 +404,10 @@ function serverCmdDeleteEnvZone(%client, %n1, %n2, %n3, %n4, %n5)
 function serverCmdDeleteEnvZones(%client)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	if(!EnvironmentZoneGroup.getCount())
 	{
@@ -408,7 +423,10 @@ function serverCmdDeleteEnvZones(%client)
 function serverCmdEditEnvZone(%client, %n1, %n2, %n3, %n4, %n5)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	if(!$ShowEnvironmentZones)
 		showEnvironmentZones(1);
@@ -446,7 +464,10 @@ function serverCmdEditEnvZone(%client, %n1, %n2, %n3, %n4, %n5)
 function serverCmdSetEnvZonePersistent(%client, %n1, %n2, %n3, %n4, %n5)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	if(!$ShowEnvironmentZones)
 		showEnvironmentZones(1);
@@ -473,7 +494,10 @@ function serverCmdSetEnvZonePersistent(%client, %n1, %n2, %n3, %n4, %n5)
 function serverCmdSetEnvZoneLocal(%client, %n1, %n2, %n3, %n4, %n5)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	if(!$ShowEnvironmentZones)
 		showEnvironmentZones(1);
@@ -500,7 +524,10 @@ function serverCmdSetEnvZoneLocal(%client, %n1, %n2, %n3, %n4, %n5)
 function serverCmdSaveEnvZones(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, %f7)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	if(!$ShowEnvironmentZones)
 		showEnvironmentZones(1);
@@ -549,7 +576,10 @@ function serverCmdSaveEnvZones(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, %f7)
 function serverCmdLoadEnvZones(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, %f7)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	if(!$ShowEnvironmentZones)
 		showEnvironmentZones(1);
@@ -593,7 +623,10 @@ function serverCmdLoadEnvZones(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, %f7)
 function serverCmdDeleteEnvZoneFile(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, %f7)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	%fileName = trim(%f0 SPC %f1 SPC %f2 SPC %f3 SPC %f4 SPC %f5 SPC %f6 SPC %f7);
 	if(!strLen(%fileName))
@@ -634,7 +667,10 @@ function serverCmdDeleteEnvZoneFile(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, 
 function serverCmdListEnvZoneFiles(%client)
 {
 	if(!%client.isAdmin)
+	{
+		messageClient(%client, '', "\c6This command is admin-only.");
 		return;
+	}
 
 	messageClient(%client, '', "\c6Available files:");
 	%pattern = "config/server/EnvironmentZoneSaves/*.ez";
