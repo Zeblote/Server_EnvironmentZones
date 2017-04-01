@@ -5,29 +5,45 @@ datablock TriggerData(EnvironmentZoneTrigger)
 
 function EnvironmentZoneTrigger::onEnterTrigger(%this, %trigger, %obj)
 {
-	if(!isObject(%obj.client) || %obj.getClassName() !$= "Player")
-		return;
-
-	%trigger.zone.onClientEnterZone(%obj.client);
+	if(%obj.getClassName() $= "Player"
+		|| %obj.getClassName() $= "AiPlayer"
+		|| %obj.getClassName() $= "WheeledVehicle"
+		|| %obj.getClassName() $= "FlyingWheelVehicle")
+	{
+		%trigger.zone.recursiveEnterZone(%obj);
+	}
 }
 
 function EnvironmentZoneTrigger::onLeaveTrigger(%this, %trigger, %obj)
 {
-	if(!isObject(%obj.client) || %obj.getClassName() !$= "Player")
+	if(%obj.getClassName() $= "Player"
+		|| %obj.getClassName() $= "AiPlayer"
+		|| %obj.getClassName() $= "WheeledVehicle"
+		|| %obj.getClassName() $= "FlyingWheelVehicle")
+	{
+		%trigger.zone.recursiveLeaveZone(%obj);
+	}
+}
+
+function EnvironmentZone::recursiveEnterZone(%this, %obj)
+{
+	if(%obj.getClassName() $= "Player" && isObject(%obj.client))
+		%obj.client.setEnvironment(%this.environment);
+
+	for(%i = 0; %i < %obj.getMountedObjectCount(); %i++)
+		%this.recursiveEnterZone(%obj.getMountedObject(%i));
+}
+
+function EnvironmentZone::recursiveLeaveZone(%this, %obj)
+{
+	if(%this.persistent)
 		return;
 
-	%trigger.zone.onClientLeaveZone(%obj.client);
-}
+	if(%obj.getClassName() $= "Player" && isObject(%obj.client))
+		%obj.client.setEnvironment($DefaultEnvironment);
 
-function EnvironmentZone::onClientEnterZone(%this, %client)
-{
-	%client.setEnvironment(%this.environment);
-}
-
-function EnvironmentZone::onClientLeaveZone(%this, %client)
-{
-	if(!%this.persistent)
-		%client.setEnvironment($DefaultEnvironment);
+	for(%i = 0; %i < %obj.getMountedObjectCount(); %i++)
+		%this.recursiveLeaveZone(%obj.getMountedObject(%i));
 }
 
 function EnvironmentZone(%name)
