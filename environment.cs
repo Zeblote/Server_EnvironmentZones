@@ -7,6 +7,13 @@ function Environment()
 function Environment::onRemove(%this)
 {
 	%this.deleteObjects();
+
+	for(%i = 0; %i < ClientGroup.getCount(); %i++)
+	{
+		%client = ClientGroup.getObject(%i);
+		if(%client.currentEnvironment == %this)
+			%client.setEnvironment($DefaultEnvironment);
+	}
 }
 
 function Environment::deleteObjects(%this)
@@ -47,7 +54,7 @@ function Environment::copyFrom(%this, %other)
 	{
 		%name = %other.sky.getName();
 		%other.sky.setName("Template");
-		%this.sky = new Sky(Copy : Template);
+		%this.sky = new Sky(Copy : Template).getId();
 		%this.sky.setName("");
 		%other.sky.setName(%name);
 	}
@@ -56,7 +63,7 @@ function Environment::copyFrom(%this, %other)
 	{
 		%name = %other.sun.getName();
 		%other.sun.setName("Template");
-		%this.sun = new Sun(Copy : Template);
+		%this.sun = new Sun(Copy : Template).getId();
 		%this.sun.setName("");
 		%other.sun.setName(%name);
 	}
@@ -65,7 +72,7 @@ function Environment::copyFrom(%this, %other)
 	{
 		%name = %other.sunLight.getName();
 		%other.sunLight.setName("Template");
-		%this.sunLight = new FxSunLight(Copy : Template);
+		%this.sunLight = new FxSunLight(Copy : Template).getId();
 		%this.sunLight.setName("");
 		%other.sunLight.setName(%name);
 	}
@@ -74,7 +81,7 @@ function Environment::copyFrom(%this, %other)
 	{
 		%name = %other.dayCycle.getName();
 		%other.dayCycle.setName("Template");
-		%this.dayCycle = new FxDayCycle(Copy : Template);
+		%this.dayCycle = new FxDayCycle(Copy : Template).getId();
 		%this.dayCycle.setName("");
 		%other.dayCycle.setName(%name);
 	}
@@ -83,7 +90,7 @@ function Environment::copyFrom(%this, %other)
 	{
 		%name = %other.groundPlane.getName();
 		%other.groundPlane.setName("Template");
-		%this.groundPlane = new FxPlane(Copy : Template);
+		%this.groundPlane = new FxPlane(Copy : Template).getId();
 		%this.groundPlane.setName("");
 		%other.groundPlane.setName(%name);
 	}
@@ -92,7 +99,7 @@ function Environment::copyFrom(%this, %other)
 	{
 		%name = %other.waterPlane.getName();
 		%other.waterPlane.setName("Template");
-		%this.waterPlane = new FxPlane(Copy : Template);
+		%this.waterPlane = new FxPlane(Copy : Template).getId();
 		%this.waterPlane.setName("");
 		%other.waterPlane.setName(%name);
 	}
@@ -101,7 +108,7 @@ function Environment::copyFrom(%this, %other)
 	{
 		%name = %other.waterZone.getName();
 		%other.waterZone.setName("Template");
-		%this.waterZone = new PhysicalZone(Copy : Template);
+		%this.waterZone = new PhysicalZone(Copy : Template).getId();
 		%this.waterZone.setName("");
 		%other.waterZone.setName(%name);
 	}
@@ -110,7 +117,7 @@ function Environment::copyFrom(%this, %other)
 	{
 		%name = %other.rain.getName();
 		%other.rain.setName("Template");
-		%this.rain = new Precipitation(Copy : Template);
+		%this.rain = new Precipitation(Copy : Template).getId();
 		%this.rain.setName("");
 		%other.rain.setName(%name);
 	}
@@ -356,7 +363,7 @@ function Environment::setupNetFlags(%this)
 
 	if(isObject(%this.sun))
 	{
-		if(GhostAlwaysSet.isMember(%this.sky))
+		if(GhostAlwaysSet.isMember(%this.sun))
 			%this.sun.clearScopeAlways();
 
 		%this.sun.setNetFlag(6, true);

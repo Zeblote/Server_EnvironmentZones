@@ -21,4 +21,5 @@ if(!isFunction(NetObject, setNetFlag))
 
 exec("./environment.cs");
 exec("./zone.cs");
+exec("./support.cs");
 exec("./manager.cs");
