@@ -17,16 +17,16 @@ function exportEnvironmentZones(%filename)
 		%file.writeLine(%zone.point1 TAB %zone.point2);
 
 		// Write simple environment data
-		%file.writeLine("File_DayCycle" TAB $EnvGuiServer::DayCycle[%env.var_DayCycleIdx]);
 		%file.writeLine("File_Ground" TAB $EnvGuiServer::Ground[%env.var_GroundIdx]);
 		%file.writeLine("File_Sky" TAB $EnvGuiServer::Sky[%env.var_SkyIdx]);
-		%file.writeLine("File_SunFlareBottom" TAB $EnvGuiServer::SunFlare[%env.var_SunFlareBottomIdx]);
-		%file.writeLine("File_SunFlareTop" TAB $EnvGuiServer::SunFlare[%env.var_SunFlareTopIdx]);
 		%file.writeLine("File_Water" TAB $EnvGuiServer::Water[%env.var_WaterIdx]);
 
 		%file.writeLine("SimpleMode" TAB %env.var_SimpleMode);
 
 		// Write advanced environment data
+		%file.writeLine("File_DayCycle" TAB $EnvGuiServer::DayCycle[%env.var_DayCycleIdx]);
+		%file.writeLine("File_SunFlareBottom" TAB $EnvGuiServer::SunFlare[%env.var_SunFlareBottomIdx]);
+		%file.writeLine("File_SunFlareTop" TAB $EnvGuiServer::SunFlare[%env.var_SunFlareTopIdx]);
 		%file.writeLine("AmbientLightColor" TAB %env.var_AmbientLightColor);
 		%file.writeLine("DayCycleEnabled" TAB %env.var_DayCycleEnabled);
 		%file.writeLine("DayLength" TAB %env.var_DayLength);
@@ -117,11 +117,26 @@ function loadEnvironmentZones(%filename)
 			%value = getField(%line, 1);
 
 			// Resource ids change between restarts, so find the correct ones
-			if(getSubStr(%var, 0, 5) $= "File_")
+			switch$(%var)
 			{
-				%type = getSubStr(%var, 5, 999);
-				%value = getEnvFileIdx(%type, %value);
-				%var = %type @ "Idx";
+				case "File_Ground":
+					%var = "GroundIdx";
+					%value = getEnvironmentFileIdx("Ground", %value);
+				case "File_Sky":
+					%var = "SkyIdx";
+					%value = getEnvironmentFileIdx("Sky", %value);
+				case "File_Water":
+					%var = "WaterIdx";
+					%value = getEnvironmentFileIdx("Water", %value);
+				case "File_DayCycle":
+					%var = "DayCycleIdx";
+					%value = getEnvironmentFileIdx("DayCycle", %value);
+				case "File_SunFlareBottom":
+					%var = "SunFlareBottomIdx";
+					%value = getEnvironmentFileIdx("SunFlare", %value);
+				case "File_SunFlareTop":
+					%var = "SunFlareTopIdx";
+					%value = getEnvironmentFileIdx("SunFlare", %value);
 			}
 
 			setEnvVariable(%var, %value);
@@ -134,7 +149,7 @@ function loadEnvironmentZones(%filename)
 	return true;
 }
 
-function getEnvFileIdx(%type, %search)
+function getEnvironmentFileIdx(%type, %search)
 {
 	%count = $EnvGuiServer["::" @ %type @ "Count"];
 
