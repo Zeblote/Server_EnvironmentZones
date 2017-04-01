@@ -1,0 +1,3 @@
+Title: Environment Zones
+Author: Zeblote (1163)
+Allows you to create zones with different environments on the same server.
