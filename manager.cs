@@ -187,6 +187,14 @@ package EnvironmentZones
 		%this.setEnvironment($DefaultEnvironment);
 	}
 
+	function GameConnection::spawnPlayer(%this)
+	{
+		setupDefaultEnvironment();
+		%this.setEnvironment($DefaultEnvironment);
+
+		return parent::spawnPlayer(%this);
+	}
+
 	function GameConnection::onClientLeaveGame(%this)
 	{
 		if(isObject(%this.envEditZone))
