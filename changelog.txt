@@ -1,3 +1,9 @@
 <just:center><color:ffffff><font:Arial Bold:20>Environment Zones Changelog<just:left>
-<br><br><font:Arial:20>Version 1.0    <font:Arial:16>01/04/2016<br>
+<br><br><font:Arial:20>Version 1.1    <font:Arial:16>02/04/2017<br>
+•  Water blocks in zones are now restricted to the zone bounds<br>
+•  Fixed overlapping environment zones not working correctly<br>
+•  Fixed teleporting between zones not working<br>
+•  Fixed simple mode environment zones not saving properly<br>
+•  Fixed /listEnvZoneSaves not working<br>
+<br><br><font:Arial:20>Version 1.0    <font:Arial:16>01/04/2017<br>
 •  Initial release<br>
