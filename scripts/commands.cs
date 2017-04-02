@@ -367,7 +367,7 @@ function serverCmdDeleteEnvZoneFile(%client, %f0, %f1, %f2, %f3, %f4, %f5, %f6, 
 	messageClient(%client, '', "\c6The save file has been permanently deleted.");
 }
 
-function serverCmdListEnvZoneFiles(%client)
+function serverCmdListEnvZoneSaves(%client)
 {
 	if(!%client.isAdmin){messageClient(%client, '', $EZ::AdminFailMsg); return;}
 
