@@ -22,7 +22,7 @@ function EnvironmentZoneTrigger::onEnterTrigger(%this, %trigger, %obj)
 function EnvironmentZone::recursiveEnterZone(%this, %obj)
 {
 	if(%obj.getClassName() $= "Player" && isObject(%obj.client))
-		%obj.client.setEnvironment(%this.environment);
+		%obj.client.pushEnvironment(%this.environment);
 
 	for(%i = 0; %i < %obj.getMountedObjectCount(); %i++)
 		%this.recursiveEnterZone(%obj.getMountedObject(%i));
@@ -41,16 +41,98 @@ function EnvironmentZoneTrigger::onLeaveTrigger(%this, %trigger, %obj)
 
 function EnvironmentZone::recursiveLeaveZone(%this, %obj)
 {
-	// Persistent environments remain if you leave a zone.
-	// You have to enter another zone to change again.
-	if(%this.persistent)
-		return;
-
 	if(%obj.getClassName() $= "Player" && isObject(%obj.client))
-		%obj.client.setEnvironment($DefaultEnvironment);
+		%obj.client.popEnvironment(%this.environment);
 
 	for(%i = 0; %i < %obj.getMountedObjectCount(); %i++)
 		%this.recursiveLeaveZone(%obj.getMountedObject(%i));
+}
+
+function GameConnection::pushEnvironment(%this, %env)
+{
+	%env = %env.getId();
+
+	for(%i = 0; %i < %this.envCount; %i++)
+	{
+		if(%this.envStack[%i] == %env)
+		{
+			echo("ERROR: Attempted to push an environment already on the stack!");
+			return;
+		}
+	}
+
+	// Add this environment to the top of the stack and apply it
+	%this.envStack[mFloor(%this.envCount)] = %env;
+	%this.envCount++;
+	%this.setEnvironment(%env);
+
+	//%this.dumpEnvStack();
+}
+
+function GameConnection::popEnvironment(%this, %env)
+{
+	%env = %env.getId();
+
+	// Remove the environment from the stack
+	%pos = -1;
+	for(%i = 0; %i < %this.envCount; %i++)
+	{
+		if(%this.envStack[%i] == %env)
+		{
+			%pos = %i;
+			break;
+		}
+	}
+
+	if(%pos == -1)
+	{
+		// Not on stack
+		return;
+	}
+
+	if(%pos == %this.envCount - 1)
+	{
+		// If it was at the top, switch the current environment
+		if(%pos > 0)
+			%this.setEnvironment(%this.envStack[%pos - 1]);
+		else
+		{
+			// Persistent environments remain until you enter another zone
+			if(!%env.zone.persistent)
+				%this.setEnvironment($DefaultEnvironment);
+		}
+
+		%this.envCount--;
+	}
+	else
+	{
+		// Wasn't at the top... remove from stack
+		for(%i = %pos; %i < (%this.envCount - 1); %i++)
+		{
+			%this.envStack[%i] = %this.envStack[%i + 1];
+		}
+
+		%this.envCount--;
+	}
+
+	//%this.dumpEnvStack();
+}
+
+function GameConnection::dumpEnvStack(%this)
+{
+	talk("Count: " @ %this.envCount);
+	for(%i = 0; %i < %this.envCount; %i++)
+	{
+		talk(%i @ ": " @ %this.envStack[%i]);
+	}
+}
+
+function GameConnection::popAllEnvironments(%this)
+{
+	while(%this.envCount)
+	{
+		%this.popEnvironment(%this.envStack[0]);
+	}
 }
 
 function EnvironmentZone(%name)
@@ -82,6 +164,7 @@ function EnvironmentZone(%name)
 	// Create copy of the main environment
 	%this.environment = Environment();
 	%this.environment.copyFrom($DefaultEnvironment);
+	%this.environment.zone = %this;
 
 	return %this;
 }

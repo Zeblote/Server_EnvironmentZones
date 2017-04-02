@@ -194,6 +194,7 @@ package EnvironmentZones
 		parent::onClientEnterGame(%this);
 
 		setupDefaultEnvironment();
+		%this.popAllEnvironments();
 		%this.setEnvironment($DefaultEnvironment);
 	}
 
@@ -201,7 +202,7 @@ package EnvironmentZones
 	function GameConnection::spawnPlayer(%this)
 	{
 		setupDefaultEnvironment();
-		%this.setEnvironment($DefaultEnvironment);
+		%this.popAllEnvironments();
 
 		return parent::spawnPlayer(%this);
 	}

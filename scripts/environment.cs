@@ -12,9 +12,7 @@ function Environment::onRemove(%this)
 	// Make sure we don't leave clients that currently use this environment in limbo
 	for(%i = 0; %i < ClientGroup.getCount(); %i++)
 	{
-		%client = ClientGroup.getObject(%i);
-		if(%client.currentEnvironment == %this)
-			%client.setEnvironment($DefaultEnvironment);
+		ClientGroup.getObject(%i).popEnvironment(%this);
 	}
 
 	%this.deleteObjects();
