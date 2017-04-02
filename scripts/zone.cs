@@ -199,6 +199,7 @@ function EnvironmentZone::setSize(%this, %point1, %point2)
 
 	%this.trigger.setTransform(%center @ " 1 0 0 0");
 	%this.trigger.setScale(%size);
+	%this.environment.restrictWaterBlock();
 }
 
 function EnvironmentZone::startEdit(%this, %client)

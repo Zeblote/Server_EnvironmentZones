@@ -224,6 +224,7 @@ function Environment::stopEdit(%this)
 
 	%this.copyVariables();
 	%this.unNameObjects();
+	%this.restrictWaterBlock();
 }
 
 function Environment::nameObjects(%this)
@@ -494,6 +495,33 @@ function Environment::clearScopeToClient(%this, %client)
 
 	if(isObject(%this.rain))
 		%this.rain.clearScopeToClient(%client);
+}
+
+function Environment::restrictWaterBlock(%this)
+{
+	if(isObject(%this.waterZone) && isObject(%this.zone))
+	{
+		%height = getWord(%this.waterPlane.getTransform(), 2) - 0.05;
+
+		%zoneZ1 = getWord(%this.zone.point1, 2);
+		%zoneZ2 = getWord(%this.zone.point2, 2);
+
+		if(%height > %zoneZ1)
+		{
+			if(%height > %zoneZ2)
+				%height = %zoneZ2;
+
+			%zoneScale = getWords(vectorSub(%this.zone.point2, %this.zone.point1), 0, 1);
+			%this.waterZone.setScale(%zoneScale SPC %height - %zoneZ1);
+			%this.waterZone.setTransform(vectorAdd(%this.zone.point1, (0 SPC getWord(%zoneScale, 1) SPC 0)));
+		}
+		else
+		{
+			%this.waterZone.setScale("0 0 0");
+			%this.waterZone.setTransform("0 0 -1");
+		}
+	}
+
 }
 
 function Environment::postEditCheck(%this)
